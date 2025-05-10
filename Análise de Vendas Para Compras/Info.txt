@@ -9,3 +9,5 @@ Relatório com objetivo de auxiliar na análise de produtos que precisam ser com
 Critérios:
 - Exibe apenas quando o produto tem o estoque atual menor que 2 ou menor que o estoque mínimo.
 - Apenas operações tipo VND abatendo Devoluções, e precisam estar efetivadas.
+
+teste
