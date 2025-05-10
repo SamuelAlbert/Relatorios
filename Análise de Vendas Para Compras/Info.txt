@@ -1,0 +1,11 @@
+Relatório com objetivo de auxiliar na análise de produtos que precisam ser comprados.
+
+- Ele faz uma pesquisa das vendas em determinado período de uma filial
+- Mostra a qtd de vendas abatendo devoluções no período por produto
+- Mostra o valor unitário do produto de acordo com a tabela escolhida
+- Mostra o Estoque Atual
+- Exibe o Fornecedor1
+
+Critérios:
+- Exibe apenas quando o produto tem o estoque atual menor que 2 ou menor que o estoque mínimo.
+- Apenas operações tipo VND abatendo Devoluções, e precisam estar efetivadas.
