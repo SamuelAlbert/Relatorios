@@ -22,7 +22,7 @@ SELECT
     ,CONCAT(F.Codigo, ' - ', F.Nome) Filial
     ,CONCAT('Impresso em ', FORMAT(GETDATE(),'dd/MM/yyyy')) ImpressoEm
     ,CONCAT(FORMAT(@DataInicial,'dd/MM/yyyy') , ' at� ', FORMAT(@DataFinal,'dd/MM/yyyy')) DataPeriodo
-    ,'V.1.0' VersaoRelatorio --Criado em 09/05/2025
+    ,'V.1.1' VersaoRelatorio --Criado em 09/05/2025
     ,CASE WHEN @Classe IS NULL OR @Classe = '' OR @Classe = 0 THEN 'Todos' ELSE CONCAT(Classes.Codigo, ' - ', Classes.Nome) END FiltroClasse
     ,CASE WHEN @SubClasse IS NULL OR @SubClasse = '' OR @SubClasse = 0 THEN 'Todos' ELSE CONCAT(Subclasses.Codigo, ' - ', Subclasses.Nome) END FiltroSubclasse
     ,CASE WHEN @Grupo IS NULL OR @Grupo = '' OR @Grupo = 0 THEN 'Todos' ELSE CONCAT(Grupos.Codigo, ' - ', Grupos.Nome) END FiltroGrupo
@@ -80,3 +80,5 @@ GROUP BY
 
 HAVING 
     (MAX(EA.Qtde_Estoque_Atual) <=2 OR (MAX(EA.Qtde_Estoque_Atual) <= MAX(EA.Estoque_Minimo)))
+
+ORDER BY MAX(EA.Qtde_Estoque_Atual)
