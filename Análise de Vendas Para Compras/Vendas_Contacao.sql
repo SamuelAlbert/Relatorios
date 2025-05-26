@@ -17,13 +17,14 @@ SELECT
     ,MAX(Tabelas_Preco.Nome) TabelaPreco
     ,ROUND(MAX(Prod_Serv_Precos.Preco), 2) PrecoCusto
     ,MAX(EA.Qtde_Estoque_Atual) EstoqueAtual
-	,ISNULL(EstoqueSim.EstoqueSimilares, 0) AS EstoqueSimilares
+ ,ISNULL(EstoqueSim.EstoqueSimilares, 0) AS EstoqueSimilares
     ,MAX(EA.Estoque_Minimo) EstoqueMinimo
     ,CONCAT(FORNECEDOR.Codigo, ' - ', FORNECEDOR.Nome) Fornecedor
     ,CONCAT(F.Codigo, ' - ', F.Nome) Filial
     ,CONCAT('Impresso em ', FORMAT(GETDATE(),'dd/MM/yyyy')) ImpressoEm
     ,CONCAT(FORMAT(@DataInicial,'dd/MM/yyyy') , ' ate ', FORMAT(@DataFinal,'dd/MM/yyyy')) DataPeriodo
-    ,'V.1.1' VersaoRelatorio --Criado em 09/05/2025
+    ,MAX(CONCAT(Subclasses.Codigo, ' - ', Subclasses.Nome)) Subclasse
+    ,'V.2.0' VersaoRelatorio --Criado em 09/05/2025
     ,CASE WHEN @Classe IS NULL OR @Classe = '' OR @Classe = 0 THEN 'Todos' ELSE CONCAT(Classes.Codigo, ' - ', Classes.Nome) END FiltroClasse
     ,CASE WHEN @SubClasse IS NULL OR @SubClasse = '' OR @SubClasse = 0 THEN 'Todos' ELSE CONCAT(Subclasses.Codigo, ' - ', Subclasses.Nome) END FiltroSubclasse
     ,CASE WHEN @Grupo IS NULL OR @Grupo = '' OR @Grupo = 0 THEN 'Todos' ELSE CONCAT(Grupos.Codigo, ' - ', Grupos.Nome) END FiltroGrupo
@@ -45,22 +46,22 @@ FROM
     JOIN Tabelas_Preco ON Tabelas_Preco.Ordem = Prod_Serv_Precos.Ordem_Tabela_Preco
     JOIN Estoque_Atual EA ON (EA.Ordem_Prod_Serv = PS.Ordem AND EA.Ordem_Filial = F.Ordem)
     JOIN Cli_For FORNECEDOR ON FORNECEDOR.Ordem = PS.Ordem_Fornecedor1
-	OUTER APPLY (
-		SELECT SUM(EA2.Qtde_Estoque_Atual) AS EstoqueSimilares
-		FROM (
-			SELECT DISTINCT 
-				CASE 
-					WHEN PSS.Ordem_Prod_Serv_Origem = PS.Ordem THEN PSS.Ordem_Prod_Serv_Similar
-					WHEN PSS.Ordem_Prod_Serv_Similar = PS.Ordem THEN PSS.Ordem_Prod_Serv_Origem
-				END AS OrdemSimilar
-			FROM Prod_Serv_Similares PSS WITH (NOLOCK)
-			WHERE PSS.Ordem_Prod_Serv_Origem = PS.Ordem
-			   OR PSS.Ordem_Prod_Serv_Similar = PS.Ordem
-		) Similares
-		JOIN Estoque_Atual EA2 WITH (NOLOCK)
-			ON EA2.Ordem_Prod_Serv = Similares.OrdemSimilar
-		   AND EA2.Ordem_Filial = F.Ordem
-	) AS EstoqueSim
+ OUTER APPLY (
+  SELECT SUM(EA2.Qtde_Estoque_Atual) AS EstoqueSimilares
+  FROM (
+   SELECT DISTINCT 
+    CASE 
+     WHEN PSS.Ordem_Prod_Serv_Origem = PS.Ordem THEN PSS.Ordem_Prod_Serv_Similar
+     WHEN PSS.Ordem_Prod_Serv_Similar = PS.Ordem THEN PSS.Ordem_Prod_Serv_Origem
+    END AS OrdemSimilar
+   FROM Prod_Serv_Similares PSS WITH (NOLOCK)
+   WHERE PSS.Ordem_Prod_Serv_Origem = PS.Ordem
+      OR PSS.Ordem_Prod_Serv_Similar = PS.Ordem
+  ) Similares
+  JOIN Estoque_Atual EA2 WITH (NOLOCK)
+   ON EA2.Ordem_Prod_Serv = Similares.OrdemSimilar
+     AND EA2.Ordem_Filial = F.Ordem
+ ) AS EstoqueSim
 
 WHERE
     F.Ordem = CASE WHEN @Filial IS NULL OR @Filial = '' OR @Filial = 0 THEN F.Ordem ELSE @Filial END
@@ -75,17 +76,17 @@ WHERE
     AND Funcionarios.Ordem = CASE WHEN @Vendedor1 IS NULL OR @Vendedor1 = '' OR @Vendedor1 = 0 THEN Funcionarios.Ordem ELSE @Vendedor1 END
     AND M.Tipo_Operacao IN ('VND', 'VPC', 'VEF', 'FPV', 'DEV', 'CVE')
     AND Tabelas_Preco.Nome = @NomeTabelaPreco
-    --AND Tabelas_Preco.Ordem = @NomeTabelaPreco
+    --AND Tabelas_Preco.Ordem = @NomeTabelaPreco --ESCOLHER ESSE AO JOGAR NO SUPERGERADOR
 
 
 GROUP BY 
-	PS.Ordem
+ PS.Ordem
     ,PS.Codigo
     ,PS.Codigo_Adicional1
     ,PS.Nome
-	,EstoqueSim.EstoqueSimilares
+ ,EstoqueSim.EstoqueSimilares
     ,CONCAT(FORNECEDOR.Codigo, ' - ', FORNECEDOR.Nome)
-	,F.Ordem
+ ,F.Ordem
     ,F.Codigo
     ,F.Nome
     ,Classes.Codigo
